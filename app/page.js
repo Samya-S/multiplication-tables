@@ -151,7 +151,7 @@ const Home = () => {
   };
 
   return (
-    <div className='text-center flex flex-col justify-center max-w-96 w-11/12 mx-auto'>
+    <div className='text-center flex flex-col justify-between max-w-96 w-11/12 mx-auto'>
       <h1 className='font-sans font-medium text-2xl my-2'>Multiplication Tables Test</h1>
       <div className='bg-amber-100'>
 
@@ -243,6 +243,7 @@ const Home = () => {
           </div>
         )}
       </div>
+      <div className='bottom-0 m-4'>With ❤️ for Dishu</div>
     </div>
   );
 };
