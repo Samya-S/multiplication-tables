@@ -1,113 +1,250 @@
-import Image from "next/image";
+"use client";
+import { useState, useRef, useEffect } from 'react';
 
-export default function Home() {
+const Home = () => {
+  const [questions, setQuestions] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [userAnswers, setUserAnswers] = useState(Array(20).fill(''));
+  const [showResults, setShowResults] = useState(false);
+  const [results, setResults] = useState([]);
+  const [currentAnswer, setCurrentAnswer] = useState(0);
+  const [showResultSection, setShowResultSection] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerShowing, setTimerShowing] = useState(false);
+  const [selectedNums, setSelectedNums] = useState(Array(19).fill(false).map((_, i) => i + 2 >= 6 && i + 2 <= 9 || i + 2 >= 12 && i + 2 <= 19));
+  const [quizStarted, setQuizStarted] = useState(false); // Track if quiz has started
+
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    startTimer(); // Start timer when the quiz starts
+  }, []);
+
+  const startTimer = () => {
+    setTimerRunning(true);
+    setTimerShowing(true);
+  };
+
+  const resetTimer = () => {
+    setElapsedTime(0);
+  };
+
+  const toggleTimerPause = () => {
+    setTimerRunning(!timerRunning);
+  };
+
+  useEffect(() => {
+    let interval;
+    if (timerRunning) {
+      interval = setInterval(() => {
+        setElapsedTime(prevTime => prevTime + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerRunning]);
+
+  const handleNumCheckboxChange = (index) => {
+    const newSelectedNums = [...selectedNums];
+    newSelectedNums[index] = !newSelectedNums[index];
+    setSelectedNums(newSelectedNums);
+  };
+
+  const isAnyCheckboxSelected = selectedNums.includes(true);
+
+  const generateQuestions = () => {
+    const newQuestions = [];
+    const selectedNumsArray = selectedNums.map((isSelected, index) => isSelected ? index + 2 : null).filter(num => num !== null);
+    for (let i = 0; i < 20; i++) {
+      const num1 = selectedNumsArray[Math.floor(Math.random() * selectedNumsArray.length)];
+      const num2 = Math.floor(Math.random() * 8) + 2; // This will generate a random integer between 2 and 9
+      const question = `${num1} x ${num2}`;
+      const answer = num1 * num2;
+      newQuestions.push({ question, answer });
+    }
+    setQuestions(newQuestions);
+    setResults([]);
+    setCurrentIndex(0);
+    setUserAnswers(Array(20).fill(''));
+    setShowResults(false);
+    setCurrentAnswer(0);
+    setShowResultSection(false);
+    resetTimer(); // Reset timer for each question
+    startTimer(); // Start timer when generating new questions
+    setQuizStarted(true); // Quiz has started
+  };
+
+  const handleButtonClick = (value) => {
+    const updatedAnswers = [...userAnswers];
+    updatedAnswers[currentIndex] += value.toString(); // Concatenate button value
+    setUserAnswers(updatedAnswers);
+    setCurrentAnswer(updatedAnswers[currentIndex]); // Update current answer
+  };
+
+  const handleClearLastInput = () => {
+    const updatedAnswers = [...userAnswers];
+    updatedAnswers[currentIndex] = updatedAnswers[currentIndex].slice(0, -1); // Remove last character
+    setUserAnswers(updatedAnswers);
+    setCurrentAnswer(updatedAnswers[currentIndex] || 0); // Update current answer or set it to 0 if empty
+  };
+
+  const handleClearAllInputs = () => {
+    setUserAnswers(prevAnswers => {
+      const updatedAnswers = [...prevAnswers];
+      updatedAnswers[currentIndex] = ''; // Clear input for the current question
+      setCurrentAnswer(0); // Set current answer to 0
+      return updatedAnswers;
+    });
+  };
+
+  const handleSubmit = () => {
+    const question = questions[currentIndex];
+    const userAnswer = userAnswers[currentIndex];
+    const isCorrect = userAnswer == question.answer;
+    setResults([...results, { question, userAnswer, isCorrect, timeTaken: elapsedTime }]);
+    setShowResultSection(true); // Show answer section after submitting
+    setTimerRunning(false); // Stop timer
+    setTimerShowing(false); // Hide timer
+  };
+
+  const handleNextQuestion = () => {
+    if (currentIndex < 19) {
+      setCurrentIndex(currentIndex + 1);
+      resetTimer(); // Reset timer for the next question
+      setTimerRunning(true); // Start timer
+      setTimerShowing(true); // Show timer
+      setShowResultSection(false); // Hide result section for the next question
+      setCurrentAnswer(0); // Set current answer to 0
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    } else {
+      handleFinishTest(); // Finish test if it's the last question
+    }
+  };
+
+  const handleFinishTest = () => {
+    setShowResults(true);
+  };
+
+  const handleRetakeTest = () => {
+    setQuizStarted(false); // Reset quiz started state
+    // setSelectedNums(Array(19).fill(false).map((_, i) => i + 2 >= 6 && i + 2 <= 9 || i + 2 >= 12 && i + 2 <= 19)); // Reset selectedNums
+    setResults([]); // Clear previous results
+    setShowResults(false); // Hide results
+  };
+
+  const calculateScore = () => {
+    if (results.length === 0) {
+      return 0;
+    }
+    return results.filter(result => result.isCorrect).length;
+  };
+
+  const calculateAverageTime = () => {
+    if (results.length === 0) {
+      return 0;
+    }
+    const totalTimes = results.reduce((acc, curr) => acc + curr.timeTaken, 0);
+    // return Math.round(totalTimes / results.length);
+    return (totalTimes / results.length);
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.js</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <div className='text-center flex flex-col justify-center max-w-96 w-full mx-auto'>
+      <h1 className='font-sans font-medium text-2xl my-2'>Multiplication Tables Test</h1>
+      <div className='bg-amber-100'>
+
+        {!showResults ? (
+          <div>
+            {!quizStarted && (
+              <div className='m-5'>
+                <p className='text-lg font-serif'>Select tables you want to practice:</p>
+                <div className="grid grid-cols-4" /*style={{display: 'grid', gridTemplateColumns: 'auto auto auto auto'}}*/>
+                  {[...Array(19)].map((_, index) => (
+                    <div key={index} className='checkbox-wrapper-26 my-2'>
+                      <input
+                        type="checkbox"
+                        checked={selectedNums[index]}
+                        onChange={() => handleNumCheckboxChange(index)}
+                        id={`num${index + 2}`}
+                      />
+                      <label htmlFor={`num${index + 2}`}>
+                        <p className="tick_mark"></p>
+                      </label>
+                      <p className='' style={{}}>{index + 2}</p>
+                    </div>
+                  ))}
+                </div>
+                {!isAnyCheckboxSelected && <p className="text-red-600 font-medium">Please select atleast one option!</p>}
+                <button className='mt-4' onClick={generateQuestions} disabled={!isAnyCheckboxSelected}>Start Quiz</button>
+              </div>
+            )}
+
+            {quizStarted && questions.length > 0 && (
+              <div className="mx-auto border border-black rounded-lg" /*style={{border: '1px solid black'}}*/>
+                <p className='pt-3 font-serif'>Question {currentIndex + 1} of 20:</p>
+                <p className='py-2 text-lg'>{questions[currentIndex].question} =</p>
+                <p className="text-xl border border-black p-2 mx-5 text-right rounded-2xl bg-yellow-50">{currentAnswer ? currentAnswer : 0}</p>
+
+                <div>
+                  {timerShowing && <p className='font-mono pt-4'>Time Elapsed: {elapsedTime} seconds</p>}
+                </div>
+
+                <div className='grid grid-cols-3 gap-3 items-center justify-center m-5'>
+                  <button onClick={handleClearLastInput}>C</button>
+                  <button onClick={() => handleButtonClick(0)}>0</button>
+                  <button onClick={handleClearAllInputs}>AC</button>
+                  {[...Array(9)].map((_, index) => (
+                    <button key={index + 1} onClick={() => handleButtonClick(index + 1)}>
+                      {index + 1}
+                    </button>
+                  ))}
+                  <button className='bg-green-600 hover:bg-green-500' disabled={!currentAnswer} onClick={handleSubmit}>Submit</button>
+                  <button className='bg-yellow-500 hover:bg-yellow-400' disabled={showResultSection} onClick={toggleTimerPause}>{!timerRunning ? 'Resume' : 'Pause'}</button>
+                  <button className='bg-red-600 hover:bg-red-500' onClick={handleFinishTest}>Finish</button>
+                </div>
+
+                {results.length > 0 && showResultSection && (
+                  <div className='my-3'>
+                    <p className={currentAnswer == questions[currentIndex].answer ? 'text-green-600 text-lg' : 'text-red-600 text-lg'}>
+                      {currentAnswer == questions[currentIndex].answer ? 'That\'s a correct answer' : `Sorry! the correct answer is ${questions[currentIndex].answer}`}
+                    </p>
+                    {/* <p>Question: {questions[currentIndex].question}</p>
+                    <p>Your Answer: {currentAnswer}</p>
+                    <p>Correct Answer: {questions[currentIndex].answer}</p> */}
+                    <p className='font-mono'>Time Taken: {elapsedTime} seconds</p>
+                    <button className='my-2' onClick={handleNextQuestion}>{currentIndex < 19 ? 'Next Question' : 'Finish test'}</button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            <h2 className='text-xl my-2'>Test Results</h2>
+            <p className='font-sans font-semibold text-lg'>Your score: {calculateScore()} out of {results.length}</p>
+            <p className='font-sans'>(Average time taken: {calculateAverageTime()} seconds per question)</p>
+            <ul className=''>
+              {results.map((result, index) => (
+                <>
+                  <li key={index} className='m-2 inline-block p-3 rounded-xl' style={{ backgroundColor: `${result.isCorrect ? '#99e699' : '#ff8080'}` }}>
+                    <p>Q{index + 1}: {result.question.question}</p>
+                    <p>Your Answer: {result.userAnswer}</p>
+                    <p>Correct Answer: {result.question.answer}</p>
+                    <p className='font-semibold font-serif'>{result.isCorrect ? 'Correct' : 'Incorrect'}</p>
+                    <p className='font-mono'>Time Taken: {result.timeTaken} seconds</p>
+                  </li>
+                  <br />
+                </>
+              ))}
+            </ul>
+            <button className='mt-2 mb-4' onClick={handleRetakeTest}>Retake Test</button>
+          </div>
+        )}
       </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800 hover:dark:bg-opacity-30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
-}
+};
+
+export default Home;
