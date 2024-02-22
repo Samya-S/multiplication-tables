@@ -151,7 +151,7 @@ const Home = () => {
   };
 
   return (
-    <div className='text-center flex flex-col justify-between max-w-96 w-11/12 mx-auto'>
+    <div className='text-center flex flex-col min-h-screen justify-between max-w-96 w-11/12 mx-auto'>
       <h1 className='font-sans font-medium text-2xl my-2'>Multiplication Tables Test</h1>
       <div className='bg-amber-100'>
 
