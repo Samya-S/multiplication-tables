@@ -147,7 +147,33 @@ const Home = () => {
     }
     const totalTimes = results.reduce((acc, curr) => acc + curr.timeTaken, 0);
     // return Math.round(totalTimes / results.length);
-    return (totalTimes / results.length);
+    return parseFloat((totalTimes / results.length).toFixed(2));
+  };
+
+  const copyToClipboard = () => {
+    const finalResults = results.map((result, index) => {
+      return `Q${index + 1}: ${result.question.question} - Your Answer: ${result.userAnswer} - Correct Answer: ${result.question.answer} - Time Taken: ${result.timeTaken} seconds`;
+    });
+    const resultString = finalResults.join('\n');
+    const totalScore = calculateScore();
+    const averageTime = calculateAverageTime();
+    const summary = `Total Score: ${totalScore}/${results.length}\nAverage Time Taken: ${averageTime} seconds/question\n\n`;
+    const finalString = summary + resultString;
+    navigator.clipboard.writeText(finalString);
+    alert("Result copied successfully!")
+  };
+
+  const shareViaWhatsApp = () => {
+    const finalResults = results.map((result, index) => {
+      return `Q${index + 1}: ${result.question.question} - Your Answer: ${result.userAnswer} - Correct Answer: ${result.question.answer} - Time Taken: ${result.timeTaken} seconds`;
+    });
+    const resultString = finalResults.join('\n');
+    const totalScore = calculateScore();
+    const averageTime = calculateAverageTime();
+    const summary = `Total Score: ${totalScore}/${results.length}\nAverage Time Taken: ${averageTime} seconds/question\n\n`;
+    const finalString = summary + resultString;
+    const whatsappLink = `https://wa.me/?text=${encodeURIComponent(finalString)}`;
+    window.open(whatsappLink, '_blank');
   };
 
   return (
@@ -239,6 +265,10 @@ const Home = () => {
                 </>
               ))}
             </ul>
+            <div className="flex justify-center space-x-4 p-5">
+              <button onClick={copyToClipboard} className="bg-sky-400 hover:bg-sky-300 text-white font-bold py-2 px-4 rounded">Copy to Clipboard</button>
+              <button onClick={shareViaWhatsApp} className="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded">Share via WhatsApp</button>
+            </div>
             <button className='mt-2 mb-4' onClick={handleRetakeTest}>Retake Test</button>
           </div>
         )}
