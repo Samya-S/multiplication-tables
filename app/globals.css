@@ -37,17 +37,6 @@ body{
   background-color: beige;
 }
 
-.container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-h1 {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
 button {
   padding: 10px 20px;
   cursor: pointer;
@@ -63,39 +52,11 @@ button:hover {
   background-color: #2990ff;
 }
 
-.question-section {
-  margin-bottom: 20px;
-}
-
-.answer-buttons {
-  margin-bottom: 20px;
-}
-
-.result-section {
-  margin-bottom: 20px;
-}
-
-.quiz-results {
-  margin-bottom: 20px;
-}
-
-.quiz-results li {
-  list-style: none;
-  margin-bottom: 10px;
-}
-
-.quiz-results p {
-  margin: 5px 0;
-}
-
-.finish-button {
-  margin-top: 20px;
-}
-
 
 
 
 /* dropping page checkboxes style */
+
 .checkbox-wrapper-26 * {
   -webkit-tap-highlight-color: transparent;
   outline: none;
