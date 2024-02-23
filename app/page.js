@@ -159,8 +159,11 @@ const Home = () => {
     const averageTime = calculateAverageTime();
     const summary = `Total Score: ${totalScore}/${results.length}\nAverage Time Taken: ${averageTime} seconds/question\n\n`;
     const finalString = summary + resultString;
-    navigator.clipboard.writeText(finalString);
-    alert("Result copied successfully!")
+    navigator.clipboard.writeText(finalString).then(() => {
+      alert("Result copied successfully!");
+    }).catch(() => {
+      alert("Unable to copy! Please try again.");
+    });
   };
 
   const shareViaWhatsApp = () => {
