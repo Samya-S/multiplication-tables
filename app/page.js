@@ -1,4 +1,5 @@
 "use client";
+import axios from 'axios';
 import { useState, useRef, useEffect } from 'react';
 
 const Home = () => {
@@ -123,8 +124,22 @@ const Home = () => {
     }
   };
 
-  const handleFinishTest = () => {
+  const handleFinishTest = async () => {
     setShowResults(true);
+
+    // send the results via email using nodemailer
+    const results = getResultsString();
+    try {
+      const response = await axios.post('/api/sendMail', { results });
+      if (response.data.status) {
+        alert('Results sent via email successfully');
+      }
+      else {
+        alert('Failed to send results via email! Please share manually.');
+      }
+    } catch (error) {
+      console.error('Error sending email', error);
+    }
   };
 
   const handleRetakeTest = () => {
@@ -150,7 +165,7 @@ const Home = () => {
     return parseFloat((totalTimes / results.length).toFixed(2));
   };
 
-  const copyToClipboard = () => {
+  const getResultsString = () => {
     const finalResults = results.map((result, index) => {
       return `Q${index + 1}: ${result.question.question} - Your Answer: ${result.userAnswer} - Correct Answer: ${result.question.answer} - Time Taken: ${result.timeTaken} seconds`;
     });
@@ -159,7 +174,13 @@ const Home = () => {
     const averageTime = calculateAverageTime();
     const summary = `Total Score: ${totalScore}/${results.length}\nAverage Time Taken: ${averageTime} seconds/question\n\n`;
     const finalString = summary + resultString;
-    navigator.clipboard.writeText(finalString).then(() => {
+
+    return finalString;
+  }
+
+  const copyToClipboard = () => {
+    const resultString = getResultsString();
+    navigator.clipboard.writeText(resultString).then(() => {
       alert("Result copied successfully!");
     }).catch(() => {
       alert("Unable to copy! Please try again.");
@@ -167,15 +188,8 @@ const Home = () => {
   };
 
   const shareViaWhatsApp = () => {
-    const finalResults = results.map((result, index) => {
-      return `Q${index + 1}: ${result.question.question} - Your Answer: ${result.userAnswer} - Correct Answer: ${result.question.answer} - Time Taken: ${result.timeTaken} seconds`;
-    });
-    const resultString = finalResults.join('\n');
-    const totalScore = calculateScore();
-    const averageTime = calculateAverageTime();
-    const summary = `Total Score: ${totalScore}/${results.length}\nAverage Time Taken: ${averageTime} seconds/question\n\n`;
-    const finalString = summary + resultString;
-    const whatsappLink = `https://wa.me/?text=${encodeURIComponent(finalString)}`;
+    const resultString = getResultsString();
+    const whatsappLink = `https://wa.me/?text=${encodeURIComponent(resultString)}`;
     window.open(whatsappLink, '_blank');
   };
 
