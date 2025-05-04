@@ -290,7 +290,7 @@ const Home = () => {
           </div>
         )}
       </div>
-      <div className='bottom-0 m-4'>With ❤️ for Dishu</div>
+      <div className='bottom-0 m-4'>With ❤️ from Samya</div>
     </div>
   );
 };
