@@ -125,15 +125,48 @@ const Home = () => {
     }
   };
 
+  const getDeviceInfo = async () => {
+    const os = navigator.platform;
+    const permissions = navigator.permissions;
+    const language = navigator.language;
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const browser = navigator.userAgent;
+    const ip = await getClientIP();
+    const connection = navigator.connection;
+    const screen = navigator.screen;
+    const storage = navigator.storage;
+    const noOfCores = navigator.hardwareConcurrency;
+
+    return { os, permissions, language, timezone, browser, ip, connection, screen, storage, noOfCores };
+  }
+
   const handleFinishTest = async () => {
     setShowResults(true);
 
     // send the results via email using nodemailer
     const results = getResultsString();
-    const deviceInfo = navigator.userAgent;
-    const ip = await getClientIP();
 
-    const mailBody = results + '\n\n' + 'Device Info: ' + deviceInfo + '\n\n' + 'IP Address: ' + ip;
+    // get the device info
+    const deviceInfo = await getDeviceInfo();
+
+    const mailBody = (
+      `
+      Test Results:
+      ${results}
+
+      Device Info:
+      OS: ${deviceInfo.os}
+      Permissions: ${JSON.stringify(deviceInfo.permissions)}
+      Language: ${deviceInfo.language}
+      Timezone: ${deviceInfo.timezone}
+      Browser: ${deviceInfo.browser}
+      IP Address: ${deviceInfo.ip}
+      Connection: ${JSON.stringify(deviceInfo.connection)}
+      Screen: ${deviceInfo.screen}
+      Storage: ${JSON.stringify(deviceInfo.storage)}
+      No of CPU Cores: ${deviceInfo.noOfCores}
+      `
+    )
 
     try {
       const response = await axios.post('/api/sendMail', { mailBody });
