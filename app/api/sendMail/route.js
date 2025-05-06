@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 
 export async function POST(req, res) {
     try {
-        const { results } = await req.json();
+        const { mailBody } = await req.json();
 
         let transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -16,7 +16,7 @@ export async function POST(req, res) {
             from: process.env.SENDER_EMAIL,
             to: process.env.RECEIVER_EMAIL,
             subject: 'Multiplication Tables Test Results',
-            text: results
+            text: mailBody
         };
 
         let { status, message } = await new Promise((resolve, reject) => {

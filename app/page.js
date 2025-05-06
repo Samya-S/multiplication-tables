@@ -1,4 +1,5 @@
 "use client";
+import { getClientIP } from '@/server/actions/get-ip';
 import axios from 'axios';
 import { useState, useRef, useEffect } from 'react';
 
@@ -129,8 +130,13 @@ const Home = () => {
 
     // send the results via email using nodemailer
     const results = getResultsString();
+    const deviceInfo = navigator.userAgent;
+    const ip = await getClientIP();
+
+    const mailBody = results + '\n\n' + 'Device Info: ' + deviceInfo + '\n\n' + 'IP Address: ' + ip;
+
     try {
-      const response = await axios.post('/api/sendMail', { results });
+      const response = await axios.post('/api/sendMail', { mailBody });
       if (response.data.status) {
         alert('Results sent via email successfully');
       }
