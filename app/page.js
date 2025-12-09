@@ -12,16 +12,12 @@ const Home = () => {
   const [currentAnswer, setCurrentAnswer] = useState(0);
   const [showResultSection, setShowResultSection] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [timerRunning, setTimerRunning] = useState(false);
-  const [timerShowing, setTimerShowing] = useState(false);
+  const [timerRunning, setTimerRunning] = useState(true);
+  const [timerShowing, setTimerShowing] = useState(true);
   const [selectedNums, setSelectedNums] = useState(Array(19).fill(false).map((_, i) => i + 2 >= 6 && i + 2 <= 9 || i + 2 >= 12 && i + 2 <= 19));
   const [quizStarted, setQuizStarted] = useState(false); // Track if quiz has started
 
   const inputRef = useRef(null);
-
-  useEffect(() => {
-    startTimer(); // Start timer when the quiz starts
-  }, []);
 
   const startTimer = () => {
     setTimerRunning(true);
