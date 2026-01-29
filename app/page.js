@@ -14,7 +14,7 @@ const Home = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [timerRunning, setTimerRunning] = useState(true);
   const [timerShowing, setTimerShowing] = useState(true);
-  const [selectedNums, setSelectedNums] = useState(Array(19).fill(false).map((_, i) => i + 2 >= 6 && i + 2 <= 9 || i + 2 >= 12 && i + 2 <= 19));
+  const [selectedNums, setSelectedNums] = useState(Array(19).fill(false).map((_, i) => i + 2 >= 12 && i + 2 <= 19));
   const [quizStarted, setQuizStarted] = useState(false); // Track if quiz has started
 
   const inputRef = useRef(null);
